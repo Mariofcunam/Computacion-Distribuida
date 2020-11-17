@@ -11,30 +11,30 @@ const int RETIRARSE = 1;
 
 const int DECISION= 1;
 
-int ponerse_acuerdo(const int proceso, const int no_proceso){
-    const int num_fallos = get_numero_de_fallos(no_proceso);
+int ponerse_acuerdo(const int proceso, const int num_proceso){
+    const int num_fallos = get_numero_de_fallos(num_proceso);
 
-    enum tipo_nodo tipo_nodo = get_tipo_nodo(proceso, no_proceso);
+    enum tipo_nodo tipo_nodo = get_tipo_nodo(proceso, num_proceso);
     int decision = get_decision_aleatoria();
-    int *decisiones = malloc(no_proceso * sizeof(int));
+    int *decisiones = malloc(num_proceso * sizeof(int));
 
     for(int general=0; general< no_fallos; ++general){
-        emitir_mensaje_a_todos_excepto_a_si_mismo(proceso,no_proceso,tipo_nodo,decision);
+        emitir_mensaje_a_todos_excepto_a_si_mismo(proceso,num_proceso,tipo_nodo,decision);
         decisiones[proceso] = decision;
 
-        recibir_de_todos_excepto_de_si_mismo(proceso,no_proceso,decisiones);
+        recibir_de_todos_excepto_de_si_mismo(proceso,num_proceso,decisiones);
 
         struct resultado_del_voto_de_mayoria resultado_voto;
-        resultado_voto = calcula_mayoria(no_proceso,decisiones);
+        resultado_voto = calcula_mayoria(num_proceso,decisiones);
 
         int decision_del_general;
         if(proceso==general){
             decision_del_general = resultado_voto.decision;
-            emitir_mensaje_a_todos_excepto_a_si_mismo(proceso,no_proceso,tipo_nodo,decision_del_general);
+            emitir_mensaje_a_todos_excepto_a_si_mismo(proceso,num_proceso,tipo_nodo,decision_del_general);
         } else{
             decision_del_general = recibir_orden_del_general(general);
         }
-        if(resultado_voto > no_proceso / 2 + no_fallos){
+        if(resultado_voto > num_proceso / 2 + num_fallos){
             decision = resultado_voto.decision;
         } else{
             decision = decision_del_general;
@@ -45,22 +45,22 @@ int ponerse_acuerdo(const int proceso, const int no_proceso){
     return decision;
 }
 
-enum tipo_nodo get_tipo_nodo(const int proceso, const int no_proceso){
-    const int NO_FALLOS=get_numero_de_fallos(no_proceso);
+enum tipo_nodo get_tipo_nodo(const int proceso, const int num_proceso){
+    const int NUM_FALLOS=get_numero_de_fallos(num_proceso);
 
     enum tipo_nodo estado;
-    if(proceso < NO_FALLOS){
-        estado = traidor;
+    if(proceso < NUM_FALLOS){
+        estado = TRAIDOR;
     } else{
-        estado = leal;
+        estado = LEAL;
     }
     return estado;
 }
 
-void emitir_mensaje_a_todos_excepto_a_si_mismo(const int proceso, const int no_proceso, const enum tipo_nodo tipo_nodo, int decision){
-    if(tipo_nodo==leal){
+void emitir_mensaje_a_todos_excepto_a_si_mismo(const int proceso, const int num_proceso, const enum tipo_nodo tipo_nodo, int decision){
+    if(tipo_nodo==LEAL){
         emitir_mensaje_a_todos_excepto_a_si_mismo_leal(proceso,no_proceso,decision);
-    }else if(tipo_nodo==traidor){
+    }else if(tipo_nodo==TRAIDOR){
         emitir_mensaje_a_todos_excepto_a_si_mismo_traidor(proceso,no_proceso);
     }
 }
@@ -110,5 +110,36 @@ struct resultado_del_voto_de_mayoria calcula_mayoria(const int no_proceso, const
         }
     }
     conteo = 0;
-    for(int i = 0; i)
+    for(int i = 0; i<no_proceso;++i){
+        if(elemento==decisiones[i]){
+            ++conteo;
+        }
+    }
+    struct resultado_del_voto_de_mayoria resultado_voto;
+    resultado_voto.desicion=elemento;
+    resultado_voto.desicion.conteo=conteo;
+    return resultado_voto;
+}
+
+int recibido_del_general(int general_proceso){
+    int valor;
+    MPI_Status estado;
+    MPI_Recv($valor,MPI_INT, general_proceso, DECISION, MPI_COMM_WORLD, $estado);
+    return valor;
+}
+
+int get_numero_de_fallos(const int no_procesos){
+    return no_procesos / 4;
+}
+
+int get_decision_aleatoria(){
+    return rand() % NUMERO_DE_DECISIONES_POSIBLES;
+}
+
+void mensaje(const int proceso, const int no_procesos, const int * const desiciones, const int ronda){
+    printf("Ronda [%d] tiene las siguiente desiciones:", ronda,proceso);
+    for(int i=0; i<no_procesos; ++i){
+        printf("%d", desiciones[i]);
+    }
+    printf("\n");
 }
